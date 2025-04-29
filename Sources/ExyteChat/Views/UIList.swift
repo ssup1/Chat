@@ -66,7 +66,7 @@ struct UIList<MessageContent: View, InputView: View>: UIViewRepresentable {
         NotificationCenter.default.addObserver(forName: .onScrollToBottom, object: nil, queue: nil) { _ in
             DispatchQueue.main.async {
                 if !context.coordinator.sections.isEmpty {
-                    tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .bottom, animated: true)
+                    tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
                 }
             }
         }
@@ -249,7 +249,22 @@ struct UIList<MessageContent: View, InputView: View>: UIViewRepresentable {
         case .insert(let section, let row):
             tableView.insertRows(at: [IndexPath(row: row, section: section)], with: animation)
         case .edit(let section, let row):
-            tableView.reconfigureRows(at: [IndexPath(row: row, section: section)])
+            let indexPath = IndexPath(row: row, section: section)
+
+            let previousContentSize = tableView.contentSize
+            let previousOffset = tableView.contentOffset
+
+            tableView.reconfigureRows(at: [indexPath])
+            tableView.layoutIfNeeded()
+
+            let newContentSize = tableView.contentSize
+            let contentSizeDelta = newContentSize.height - previousContentSize.height
+
+            if contentSizeDelta != 0 && !isScrolledToBottom {
+                let newOffset = CGPoint(x: previousOffset.x, y: previousOffset.y + contentSizeDelta)
+                tableView.setContentOffset(newOffset, animated: false)
+            }
+
         case .swap(let section, let rowFrom, let rowTo):
             tableView.deleteRows(at: [IndexPath(row: rowFrom, section: section)], with: animation)
             tableView.insertRows(at: [IndexPath(row: rowTo, section: section)], with: animation)

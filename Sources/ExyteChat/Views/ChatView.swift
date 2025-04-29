@@ -372,11 +372,6 @@ public struct ChatView<MessageContent: View, InputViewContent: View, MenuAction:
                 Task { @MainActor in
                     didSendMessage(value)
                 }
-                if type == .conversation {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        NotificationCenter.default.post(name: .onScrollToBottom, object: nil)
-                    }
-                }
             }
         }
     }
